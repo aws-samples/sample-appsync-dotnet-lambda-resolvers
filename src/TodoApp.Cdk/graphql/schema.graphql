@@ -1,0 +1,44 @@
+# Queries for fetching data
+type Query {
+	getTodoById(id: ID!): Todo
+	listTodos: [Todo]
+}
+
+# Mutations for data manipulation
+type Mutation {
+	createTodo(title: String!, description: String): Todo
+	updateTodo(
+		id: ID!,
+		title: String!,
+		description: String,
+		completed: Boolean!
+	): Todo
+	deleteTodo(id: ID!): Todo
+}
+
+# Input types for mutations
+input CreateTodoItem {
+	title: String!
+	description: String
+}
+
+input UpdateTodoItem {
+	id: ID!
+	title: String!
+	description: String
+	completed: Boolean!
+}
+
+type Todo {
+	id: ID!
+	title: String!
+	description: String
+	completed: Boolean!
+	createdAt: AWSDateTime
+	updatedAt: AWSDateTime
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}
