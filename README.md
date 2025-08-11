@@ -113,6 +113,18 @@ The deployment will output the GraphQL API URL and API Key that you can use to i
 
 You can test the API using the AWS AppSync Console or any GraphQL client like [Postman](https://www.postman.com/) or [Insomnia](https://insomnia.rest/).
 
+You can test your API using popular API clients like Thunder Client or Postman:
+
+1. **Configure your request headers:**
+   - `x-api-key`: Your AppSync API key
+   - `Content-Type`: application/json
+
+2. **Set the endpoint URL** to your AppSync API URL
+
+3. **Write your GraphQL queries or mutations** in the request body
+
+4. **Send the request and examine the response**
+
 ### Example Queries
 
 #### List all Todo items
