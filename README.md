@@ -15,42 +15,42 @@ The solution uses the following AWS services:
 ```
 TodoApp/
 ├── src/
-│   ├── TodoApp.Api/                # Lambda function code
-│   │   ├── Entity/                 # DynamoDB entity models
-│   │   │   └── TodoItemEntity.cs   # Todo item entity for DynamoDB
-│   │   ├── GraphQLTypes/           # GraphQL type definitions
-│   │   │   ├── CreateTodoItem.cs   # Input type for creating todos
-│   │   │   ├── Todo.cs             # Todo type definition
-│   │   │   └── UpdateTodoItem.cs   # Input type for updating todos
-│   │   ├── Repository/             # Data access layer
-│   │   │   ├── ITodoRepository.cs  # Repository interface
-│   │   │   └── TodoRepository.cs   # DynamoDB repository implementation
-│   │   ├── Services/               # Business logic layer
-│   │   │   ├── ITodoService.cs     # Service interface
-│   │   │   ├── TodoMapper.cs       # Entity to DTO mapping
-│   │   │   └── TodoService.cs      # Service implementation
-│   │   ├── Functions.cs            # Lambda function handlers
-│   │   ├── Startup.cs              # Dependency injection setup
-│   │   └── TodoApp.Api.csproj      # Project file
+│   ├── TodoApp.Api/                    # Lambda function code
+│   │   ├── Entity/                     # DynamoDB entity models
+│   │   │   └── TodoItemEntity.cs       # Todo item entity for DynamoDB
+│   │   ├── GraphQLTypes/               # GraphQL type definitions
+│   │   │   ├── CreateTodoItem.cs       # Input type for creating todos
+│   │   │   ├── Todo.cs                 # Todo type definition
+│   │   │   └── UpdateTodoItem.cs       # Input type for updating todos
+│   │   ├── Repository/                 # Data access layer
+│   │   │   ├── ITodoRepository.cs      # Repository interface
+│   │   │   └── TodoRepository.cs       # DynamoDB repository implementation
+│   │   ├── Services/                   # Business logic layer
+│   │   │   ├── ITodoService.cs         # Service interface
+│   │   │   ├── TodoMapper.cs           # Entity to DTO mapping
+│   │   │   └── TodoService.cs          # Service implementation
+│   │   ├── Functions.cs                # Lambda function handlers
+│   │   ├── Startup.cs                  # Dependency injection setup
+│   │   ├── TodoApp.Api.csproj          # Project file
 │   │
-│   ├── TodoApp.AspireHost/         # .NET Aspire host project
-│   │   └── Program.cs              # Aspire host configuration
+│   ├── TodoApp.AspireHost/             # .NET Aspire host project
+│   │   ├── Program.cs                  # Aspire host configuration
 │   │
-│   └── TodoApp.Cdk/                # CDK Infrastructure code
-│       ├── ApiStack.cs             # Main CDK stack with AppSync and Lambda resources
-│       ├── Program.cs              # CDK app entry point
-│       └── graphql/
-│           └── schema.graphql      # GraphQL schema definition
+│   └── TodoApp.Cdk/                    # CDK Infrastructure code
+│       ├── graphql/                    # GraphQL schema files
+│       │   └── schema.graphql          # GraphQL schema definition
+│       ├── AppSyncApiStack.cs          # Main CDK stack with AppSync and Lambda resources
+│       ├── Program.cs                  # CDK app entry point
 │
-└── tests/
-    └── TodoApp.Tests/              # Unit tests
-        ├── TodoRepositoryTests.cs  # Repository tests
-        └── TodoServiceTests.cs     # Service tests
+├── tests/
+│   └── TodoApp.Tests/                  # Unit tests
+│       ├── TodoRepositoryTests.cs      # Repository tests
+│       ├── TodoServiceTests.cs         # Service tests
 ```
 
 ### Key Files
 
-- `ApiStack.cs`: Contains the CDK infrastructure definition including:
+- `AppSyncApiStack.cs`: Contains the CDK infrastructure definition including:
   - AppSync GraphQL API configuration
   - DynamoDB table definition
   - Lambda function definitions with appropriate IAM permissions
@@ -88,8 +88,8 @@ The API supports the following operations:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/aws-samples/appsync-dotnet-lambda-resolvers.git
-cd appsync-dotnet-lambda-resolvers
+git clone https://github.com/aws-samples/sample-appsync-dotnet-lambda-resolvers.git
+cd sample-appsync-dotnet-lambda-resolvers
 ```
 
 ### 2. Build the .NET Lambda functions
