@@ -102,12 +102,19 @@ cd ../..
 
 ### 3. Deploy the CDK stack
 
+#### Option 1: API Key Authentication (Default)
 ```bash
 cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy
 ```
 
-The deployment will output the GraphQL API URL and API Key that you can use to interact with your API.
+#### Option 2: Lambda Authorization
+```bash
+cdk bootstrap  # Only needed the first time you use CDK in an account/region
+cdk deploy -c useLambdaAuth=true
+```
+
+The deployment will output the GraphQL API URL and either an API Key or authorization type based on your choice.
 
 ## Testing the API
 
@@ -115,8 +122,14 @@ You can test the API using the AWS AppSync Console or any GraphQL client like [P
 
 You can test your API using popular API clients like Thunder Client or Postman:
 
+#### For API Key Authentication:
 1. **Configure your request headers:**
    - `x-api-key`: Your AppSync API key
+   - `Content-Type`: application/json
+
+#### For Lambda Authorization:
+1. **Configure your request headers:**
+   - `Authorization`: Bearer valid-token (or Bearer admin-token)
    - `Content-Type`: application/json
 
 2. **Set the endpoint URL** to your AppSync API URL
@@ -170,6 +183,21 @@ mutation CreateTodo {
   }
 }
 ```
+
+## Authorization Options
+
+This project supports two authentication methods:
+
+### API Key Authentication (Default)
+- Simple API key-based authentication
+- Suitable for development and testing
+- Use `x-api-key` header with requests
+
+### Lambda Authorization
+- Custom Lambda function validates requests
+- Supports Bearer token authentication
+- Deploy with `-c useLambdaAuth=true`
+- Test tokens: `valid-token` or `admin-token`
 
 ## Security
 
