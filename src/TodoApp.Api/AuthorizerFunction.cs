@@ -1,56 +1,53 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Annotations;
-using System.Text.Json;
+using Amazon.Lambda.AppSyncEvents;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TodoApp.Api;
 
 public class AuthorizerFunction
 {
     [LambdaFunction]
-    public Dictionary<string, object> Authorize(Dictionary<string, object> request, ILambdaContext context)
+    public Task<AppSyncAuthorizerResult> CustomLambdaAuthorizerHandler(AppSyncAuthorizerEvent appSyncAuthorizerEvent, ILambdaContext context)
     {
-        context.Logger.LogInformation($"Authorization request: {JsonSerializer.Serialize(request)}");
-
+        context.Logger.LogInformation("Processing authorization request");
+        
         try
         {
-            // Get the authorization token from the request
-            if (!request.TryGetValue("authorizationToken", out var tokenObj))
-            {
-                context.Logger.LogError("No authorizationToken found");
-                return new Dictionary<string, object> { { "isAuthorized", false } };
-            }
-
-            var token = tokenObj?.ToString() ?? "";
-            context.Logger.LogInformation($"Token: {token}");
+            var authorizationToken = appSyncAuthorizerEvent.AuthorizationToken;
+            var apiId = appSyncAuthorizerEvent.RequestContext.ApiId;
+            var accountId = appSyncAuthorizerEvent.RequestContext.AccountId;
             
-            if (string.IsNullOrEmpty(token) || !token.StartsWith("Bearer "))
+            if (string.IsNullOrEmpty(authorizationToken) || !authorizationToken.StartsWith("Bearer "))
             {
                 context.Logger.LogError("Invalid token format");
-                return new Dictionary<string, object> { { "isAuthorized", false } };
+                return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
             }
 
-            var actualToken = token.Substring("Bearer ".Length);
-            context.Logger.LogInformation($"Actual token: {actualToken}");
+            var actualToken = authorizationToken.Substring("Bearer ".Length);
             
             // Simple validation
             var isAuthorized = actualToken == "valid-token" || actualToken == "admin-token";
-            context.Logger.LogInformation($"Is authorized: {isAuthorized}");
+            context.Logger.LogInformation($"Authorization result: {isAuthorized}");
             
-            return new Dictionary<string, object>
+            return Task.FromResult(new AppSyncAuthorizerResult
             {
-                { "isAuthorized", isAuthorized },
-                { "resolverContext", new Dictionary<string, object>
-                    {
-                        { "userId", "user123" },
-                        { "role", actualToken == "admin-token" ? "admin" : "user" }
-                    }
-                }
-            };
+                IsAuthorized = isAuthorized,
+                ResolverContext = new Dictionary<string, string>
+                {
+                    { "userId", "user123" },
+                    { "role", actualToken == "admin-token" ? "admin" : "user" },
+                    { "apiId", apiId },
+                    { "accountId", accountId }
+                },
+                TtlOverride = 300 // 5 minutes cache
+            });
         }
         catch (Exception ex)
         {
-            context.Logger.LogError($"Error: {ex.Message}");
-            return new Dictionary<string, object> { { "isAuthorized", false } };
+            context.Logger.LogError($"Authorization error: {ex.Message}");
+            return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
         }
     }
 }

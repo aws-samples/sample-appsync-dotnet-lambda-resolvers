@@ -51,8 +51,17 @@ namespace TodoApp.Api
         [Logging(LogEvent = true)]
         public async Task<Todo> DeleteTodoItem(AppSyncResolverEvent<Dictionary<string, string>> appSyncEvent)
         {
-            // Check if user has admin role
-            var role = appSyncEvent.RequestContext.Identity.Claims["role"];
+            // Get role from resolver context passed by authorizer
+            var role = "user"; // default role
+            if (appSyncEvent.Identity != null)
+            {
+                var identity = appSyncEvent.Identity as Dictionary<string, object>;
+                if (identity?.ContainsKey("role") == true)
+                {
+                    role = identity["role"]?.ToString() ?? "user";
+                }
+            }
+            
             if (role != "admin")
             {
                 throw new UnauthorizedAccessException("Only admins can delete todos");

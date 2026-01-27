@@ -88,7 +88,7 @@
         "Handler": "TodoApp.Api::TodoApp.Api.Functions_DeleteTodoItem_Generated::DeleteTodoItem"
       }
     },
-    "TodoAppApiAuthorizerFunctionAuthorizeGenerated": {
+    "TodoAppApiAuthorizerFunctionCustomLambdaAuthorizerHandlerGenerated": {
       "Type": "AWS::Serverless::Function",
       "Metadata": {
         "Tool": "Amazon.Lambda.Annotations"
@@ -102,7 +102,7 @@
           "AWSLambdaBasicExecutionRole"
         ],
         "PackageType": "Zip",
-        "Handler": "TodoApp.Api::TodoApp.Api.AuthorizerFunction_Authorize_Generated::Authorize"
+        "Handler": "TodoApp.Api::TodoApp.Api.AuthorizerFunction_CustomLambdaAuthorizerHandler_Generated::CustomLambdaAuthorizerHandler"
       }
     }
   }

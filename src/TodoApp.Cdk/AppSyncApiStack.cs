@@ -54,7 +54,7 @@ namespace TodoApp.CDK
                 {
                     Runtime = Runtime.DOTNET_8,
                     Code = Amazon.CDK.AWS.Lambda.Code.FromAsset("src/TodoApp.Api/bin/Release/net8.0/publish"),
-                    Handler = "TodoApp.Api::TodoApp.Api.AuthorizerFunction_Authorize_Generated::Authorize",
+                    Handler = "TodoApp.Api::TodoApp.Api.AuthorizerFunction_CustomLambdaAuthorizerHandler_Generated::CustomLambdaAuthorizerHandler",
                     MemorySize = 256,
                     Timeout = Duration.Seconds(30),
                     Environment = new Dictionary<string, string>
