@@ -108,13 +108,13 @@ cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy
 ```
 
-#### Option 2: Lambda Authorization (Hardcoded tokens)
+#### Option 2: Lambda Authorization
 ```bash
 cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy -c useLambdaAuth=true
 ```
 
-#### Option 3: Cognito User Pools (Recommended for Production)
+#### Option 3: Cognito User Pools
 ```bash
 cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy -c useCognitoUserPools=true
@@ -132,7 +132,7 @@ You can test your API using popular API clients like Thunder Client or Postman:
 
 #### For API Key Authentication:
 1. **Configure your request headers:**
-   - `x-api-key`: Your AppSync API key
+   - `x-api-key`: Your AppSync API key (from CDK output)
    - `Content-Type`: application/json
 
 #### For Lambda Authorization:
@@ -140,11 +140,26 @@ You can test your API using popular API clients like Thunder Client or Postman:
    - `Authorization`: Bearer valid-token (or Bearer admin-token)
    - `Content-Type`: application/json
 
-2. **Set the endpoint URL** to your AppSync API URL
+#### For Cognito User Pools:
+1. **Get a JWT token** (see [COGNITO_USERPOOLS.md](COGNITO_USERPOOLS.md) for details):
+   ```bash
+   TOKEN=$(aws cognito-idp initiate-auth \
+     --auth-flow USER_PASSWORD_AUTH \
+     --client-id <YOUR_CLIENT_ID> \
+     --auth-parameters USERNAME=<USERNAME>,PASSWORD=<PASSWORD> \
+     --query 'AuthenticationResult.IdToken' \
+     --output text)
+   ```
 
-3. **Write your GraphQL queries or mutations** in the request body
+2. **Configure your request headers:**
+   - `Authorization`: $TOKEN (no "Bearer" prefix)
+   - `Content-Type`: application/json
 
-4. **Send the request and examine the response**
+3. **Set the endpoint URL** to your AppSync API URL
+
+4. **Write your GraphQL queries or mutations** in the request body
+
+5. **Send the request and examine the response**
 
 ### Example Queries
 
