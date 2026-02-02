@@ -19,16 +19,14 @@ public class AuthorizerFunction
             var apiId = appSyncAuthorizerEvent.RequestContext.ApiId;
             var accountId = appSyncAuthorizerEvent.RequestContext.AccountId;
             
-            if (string.IsNullOrEmpty(authorizationToken) || !authorizationToken.StartsWith("Bearer "))
+            if (string.IsNullOrEmpty(authorizationToken))
             {
-                context.Logger.LogError("Invalid token format");
+                context.Logger.LogError("Missing authorization token");
                 return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
             }
-
-            var actualToken = authorizationToken.Substring("Bearer ".Length);
             
             // Simple validation
-            var isAuthorized = actualToken == "valid-token" || actualToken == "admin-token";
+            var isAuthorized = authorizationToken == "valid-token" || authorizationToken == "admin-token";
             context.Logger.LogInformation($"Authorization result: {isAuthorized}");
             
             return Task.FromResult(new AppSyncAuthorizerResult
@@ -37,7 +35,7 @@ public class AuthorizerFunction
                 ResolverContext = new Dictionary<string, string>
                 {
                     { "userId", "user123" },
-                    { "role", actualToken == "admin-token" ? "admin" : "user" },
+                    { "role", authorizationToken == "admin-token" ? "admin" : "user" },
                     { "apiId", apiId },
                     { "accountId", accountId }
                 },

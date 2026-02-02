@@ -174,7 +174,7 @@ namespace TodoApp.CDK
                 new CfnOutput(this, "AuthorizationType", new CfnOutputProps
                 {
                     Value = "Lambda Authorizer",
-                    Description = "Use 'Bearer valid-token' in Authorization header"
+                    Description = "Use 'valid-token' in Authorization header"
                 });
 
                 new CfnOutput(this, "AuthorizerFunctionArn", new CfnOutputProps
