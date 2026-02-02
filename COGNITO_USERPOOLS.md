@@ -94,24 +94,3 @@ curl -X POST <YOUR_GRAPHQL_API_URL> \
 4. Delete resolver extracts `cognito:groups` from identity
 5. Only users in Admins group can delete
 
-## Permissions
-
-| Operation | Regular User | Admin User |
-|-----------|--------------|------------|
-| listTodos | ✅ | ✅ |
-| getTodoById | ✅ | ✅ |
-| createTodo | ✅ | ✅ |
-| updateTodo | ✅ | ✅ |
-| deleteTodo | ❌ | ✅ |
-
-## Comparison with Lambda Authorizer
-
-| Feature | Native Cognito User Pools | Lambda Authorizer |
-|---------|---------------------------|-------------------|
-| **Deployment** | `-c useCognitoUserPools=true` | `-c useLambdaAuth=true` |
-| **JWT Validation** | AppSync (automatic) | Custom Lambda function |
-| **Authorization Header** | `Authorization: <token>` | `Authorization: Bearer <token>` |
-| **Latency** | Lower | Higher (extra Lambda call) |
-| **Cost** | Lower | Higher (Lambda invocations) |
-| **Flexibility** | Standard Cognito | Custom logic possible |
-| **Recommended** | ✅ Yes | For advanced use cases |

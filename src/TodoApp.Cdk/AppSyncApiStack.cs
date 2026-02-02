@@ -3,6 +3,7 @@ using Amazon.CDK.AWS.AppSync;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.Cognito;
 using Constructs;
 using System.Collections.Generic;
 using Attribute = Amazon.CDK.AWS.DynamoDB.Attribute;
@@ -44,11 +45,11 @@ namespace TodoApp.CDK
                 RemovalPolicy = RemovalPolicy.DESTROY
             });
 
-            // Create Cognito User Pool (for both Lambda Auth and native Cognito User Pools)
+            // Create Cognito User Pool (only for native Cognito User Pools mode)
             UserPool userPool = null;
             UserPoolClient userPoolClient = null;
             
-            if (useLambdaAuth || useCognitoUserPools)
+            if (useCognitoUserPools)
             {
                 userPool = new UserPool(this, "TodoUserPool", new UserPoolProps
                 {
@@ -119,7 +120,8 @@ namespace TodoApp.CDK
                         UserPoolConfig = new UserPoolConfig
                         {
                             UserPool = userPool,
-                            DefaultAction = UserPoolDefaultAction.ALLOW
+                            DefaultAction = UserPoolDefaultAction.ALLOW,
+                            AppIdClientRegex = userPoolClient.UserPoolClientId
                         }
                     }
                 };
@@ -245,8 +247,8 @@ namespace TodoApp.CDK
                 Value = api.GraphqlUrl
             });
 
-            // Cognito outputs (if Cognito is enabled)
-            if (useLambdaAuth || useCognitoUserPools)
+            // Cognito outputs (only if Cognito User Pools mode is enabled)
+            if (useCognitoUserPools)
             {
                 new CfnOutput(this, "UserPoolId", new CfnOutputProps
                 {
