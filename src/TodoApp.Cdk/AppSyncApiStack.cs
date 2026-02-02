@@ -31,8 +31,9 @@ namespace TodoApp.CDK
 
         public AppSyncApiStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            // Check if Lambda authorization is enabled via context
+            // Check authorization mode flags
             var useLambdaAuth = this.Node.TryGetContext("useLambdaAuth")?.ToString() == "true";
+            var useCognitoUserPools = this.Node.TryGetContext("useCognitoUserPools")?.ToString() == "true";
 
             // Create DynamoDB Table
             var todoTable = new Table(this, "TodoTable", new TableProps
@@ -43,11 +44,87 @@ namespace TodoApp.CDK
                 RemovalPolicy = RemovalPolicy.DESTROY
             });
 
+            // Create Cognito User Pool (for both Lambda Auth and native Cognito User Pools)
+            UserPool userPool = null;
+            UserPoolClient userPoolClient = null;
+            
+            if (useLambdaAuth || useCognitoUserPools)
+            {
+                userPool = new UserPool(this, "TodoUserPool", new UserPoolProps
+                {
+                    UserPoolName = "todo-app-users",
+                    SelfSignUpEnabled = true,
+                    SignInAliases = new SignInAliases
+                    {
+                        Email = true,
+                        Username = true
+                    },
+                    AutoVerify = new AutoVerifiedAttrs { Email = true },
+                    StandardAttributes = new StandardAttributes
+                    {
+                        Email = new StandardAttribute { Required = true, Mutable = true }
+                    },
+                    PasswordPolicy = new PasswordPolicy
+                    {
+                        MinLength = 8,
+                        RequireLowercase = true,
+                        RequireUppercase = true,
+                        RequireDigits = true,
+                        RequireSymbols = false
+                    },
+                    AccountRecovery = AccountRecovery.EMAIL_ONLY,
+                    RemovalPolicy = RemovalPolicy.DESTROY
+                });
+
+                userPoolClient = new UserPoolClient(this, "TodoUserPoolClient", new UserPoolClientProps
+                {
+                    UserPool = userPool,
+                    UserPoolClientName = "todo-app-client",
+                    AuthFlows = new AuthFlow
+                    {
+                        UserPassword = true,
+                        UserSrp = true
+                    },
+                    GenerateSecret = false
+                });
+
+                // Create Admin and User groups
+                new CfnUserPoolGroup(this, "AdminGroup", new CfnUserPoolGroupProps
+                {
+                    UserPoolId = userPool.UserPoolId,
+                    GroupName = "Admins",
+                    Description = "Admin users with full access including delete operations"
+                });
+
+                new CfnUserPoolGroup(this, "UserGroup", new CfnUserPoolGroupProps
+                {
+                    UserPoolId = userPool.UserPoolId,
+                    GroupName = "Users",
+                    Description = "Regular users with read and write access"
+                });
+            }
+
             // Create authorization config based on context
             AuthorizationConfig authConfig;
             Function authorizerFunction = null;
 
-            if (useLambdaAuth)
+            if (useCognitoUserPools)
+            {
+                // Native Cognito User Pools authorization
+                authConfig = new AuthorizationConfig
+                {
+                    DefaultAuthorization = new AuthorizationMode
+                    {
+                        AuthorizationType = AuthorizationType.USER_POOL,
+                        UserPoolConfig = new UserPoolConfig
+                        {
+                            UserPool = userPool,
+                            DefaultAction = UserPoolDefaultAction.ALLOW
+                        }
+                    }
+                };
+            }
+            else if (useLambdaAuth)
             {
                 // Create Lambda Authorizer Function
                 authorizerFunction = new Function(this, "AppSyncAuthorizerFunction", new FunctionProps
@@ -168,8 +245,32 @@ namespace TodoApp.CDK
                 Value = api.GraphqlUrl
             });
 
+            // Cognito outputs (if Cognito is enabled)
+            if (useLambdaAuth || useCognitoUserPools)
+            {
+                new CfnOutput(this, "UserPoolId", new CfnOutputProps
+                {
+                    Value = userPool.UserPoolId,
+                    Description = "Cognito User Pool ID"
+                });
+
+                new CfnOutput(this, "UserPoolClientId", new CfnOutputProps
+                {
+                    Value = userPoolClient.UserPoolClientId,
+                    Description = "Cognito User Pool Client ID"
+                });
+            }
+
             // Conditional outputs based on auth type
-            if (useLambdaAuth)
+            if (useCognitoUserPools)
+            {
+                new CfnOutput(this, "AuthorizationType", new CfnOutputProps
+                {
+                    Value = "Cognito User Pools (Native)",
+                    Description = "Use 'Authorization: <cognito-jwt-token>' header"
+                });
+            }
+            else if (useLambdaAuth)
             {
                 new CfnOutput(this, "AuthorizationType", new CfnOutputProps
                 {

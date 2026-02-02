@@ -108,11 +108,19 @@ cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy
 ```
 
-#### Option 2: Lambda Authorization
+#### Option 2: Lambda Authorization (Hardcoded tokens)
 ```bash
 cdk bootstrap  # Only needed the first time you use CDK in an account/region
 cdk deploy -c useLambdaAuth=true
 ```
+
+#### Option 3: Cognito User Pools (Recommended for Production)
+```bash
+cdk bootstrap  # Only needed the first time you use CDK in an account/region
+cdk deploy -c useCognitoUserPools=true
+```
+
+See [COGNITO_USERPOOLS.md](COGNITO_USERPOOLS.md) for complete Cognito setup instructions.
 
 The deployment will output the GraphQL API URL and either an API Key or authorization type based on your choice.
 

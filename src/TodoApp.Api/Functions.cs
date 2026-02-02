@@ -49,18 +49,42 @@ namespace TodoApp.Api
 
         [LambdaFunction]
         [Logging(LogEvent = true)]
-        public async Task<Todo> DeleteTodoItem(AppSyncResolverEvent<Dictionary<string, string>> appSyncEvent)
+        public async Task<Todo> DeleteTodoItem(AppSyncResolverEvent<Dictionary<string, string>> appSyncEvent, ILambdaContext context)
         {
-            // Get role from resolver context passed by authorizer
-            var role = "user"; // default role
+            var role = "user";
+            
             if (appSyncEvent.Identity != null)
             {
-                var identity = appSyncEvent.Identity as Dictionary<string, object>;
-                if (identity?.ContainsKey("role") == true)
+                var lambdaSerializer = new Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer();
+                using (var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(appSyncEvent.Identity.ToString()!)))
                 {
-                    role = identity["role"]?.ToString() ?? "user";
+                    try
+                    {
+                        // Try native Cognito User Pools first
+                        var cognitoIdentity = lambdaSerializer.Deserialize<AppSyncCognitoIdentity>(stream);
+                        
+                        if (cognitoIdentity?.Claims?.ContainsKey("cognito:groups") == true)
+                        {
+                            var groups = cognitoIdentity.Claims["cognito:groups"].ToString();
+                            if (groups?.Contains("Admins") == true)
+                            {
+                                role = "admin";
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to checking hardcoded role from Lambda Authorizer
+                        var identity = appSyncEvent.Identity as Dictionary<string, object>;
+                        if (identity?.ContainsKey("role") == true)
+                        {
+                            role = identity["role"]?.ToString() ?? "user";
+                        }
+                    }
                 }
             }
+            
+            context.Logger.LogInformation($"Delete request from role: {role}");
             
             if (role != "admin")
             {
