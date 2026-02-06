@@ -1,6 +1,7 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.Annotations;
 using Amazon.Lambda.AppSyncEvents;
+using AWS.Lambda.Powertools.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,25 +10,26 @@ namespace TodoApp.Api;
 public class AuthorizerFunction
 {
     [LambdaFunction]
+    [Logging(LogEvent = true)]
     public Task<AppSyncAuthorizerResult> CustomLambdaAuthorizerHandler(AppSyncAuthorizerEvent appSyncAuthorizerEvent, ILambdaContext context)
     {
-        context.Logger.LogInformation("Processing authorization request");
+        Logger.LogInformation("Processing authorization request");
         
         try
         {
             var authorizationToken = appSyncAuthorizerEvent.AuthorizationToken;
-            var apiId = appSyncAuthorizerEvent.RequestContext.ApiId;
-            var accountId = appSyncAuthorizerEvent.RequestContext.AccountId;
+            var apiId = appSyncAuthorizerEvent.RequestContext?.ApiId ?? "unknown";
+            var accountId = appSyncAuthorizerEvent.RequestContext?.AccountId ?? "unknown";
             
             if (string.IsNullOrEmpty(authorizationToken))
             {
-                context.Logger.LogError("Missing authorization token");
+                Logger.LogError("Missing authorization token");
                 return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
             }
             
             // Simple validation
             var isAuthorized = authorizationToken == "valid-token" || authorizationToken == "admin-token";
-            context.Logger.LogInformation($"Authorization result: {isAuthorized}");
+            Logger.LogInformation($"Authorization result: {isAuthorized}");
             
             return Task.FromResult(new AppSyncAuthorizerResult
             {
@@ -44,7 +46,7 @@ public class AuthorizerFunction
         }
         catch (Exception ex)
         {
-            context.Logger.LogError($"Authorization error: {ex.Message}");
+            Logger.LogError($"Authorization error: {ex.Message}");
             return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
         }
     }
