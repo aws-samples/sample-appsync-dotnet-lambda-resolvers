@@ -15,39 +15,31 @@ public class AuthorizerFunction
     {
         Logger.LogInformation("Processing authorization request");
         
-        try
+        var authorizationToken = appSyncAuthorizerEvent.AuthorizationToken;
+        var apiId = appSyncAuthorizerEvent.RequestContext?.ApiId ?? "unknown";
+        var accountId = appSyncAuthorizerEvent.RequestContext?.AccountId ?? "unknown";
+        
+        if (string.IsNullOrEmpty(authorizationToken))
         {
-            var authorizationToken = appSyncAuthorizerEvent.AuthorizationToken;
-            var apiId = appSyncAuthorizerEvent.RequestContext?.ApiId ?? "unknown";
-            var accountId = appSyncAuthorizerEvent.RequestContext?.AccountId ?? "unknown";
-            
-            if (string.IsNullOrEmpty(authorizationToken))
-            {
-                Logger.LogError("Missing authorization token");
-                return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
-            }
-            
-            // Simple validation
-            var isAuthorized = authorizationToken == "valid-token" || authorizationToken == "admin-token";
-            Logger.LogInformation($"Authorization result: {isAuthorized}");
-            
-            return Task.FromResult(new AppSyncAuthorizerResult
-            {
-                IsAuthorized = isAuthorized,
-                ResolverContext = new Dictionary<string, string>
-                {
-                    { "userId", "user123" },
-                    { "role", authorizationToken == "admin-token" ? "admin" : "user" },
-                    { "apiId", apiId },
-                    { "accountId", accountId }
-                },
-                TtlOverride = 300 // 5 minutes cache
-            });
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError($"Authorization error: {ex.Message}");
+            Logger.LogError("Missing authorization token");
             return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
         }
+        
+        // Simple validation
+        var isAuthorized = authorizationToken == "valid-token" || authorizationToken == "admin-token";
+        Logger.LogInformation($"Authorization result: {isAuthorized}");
+        
+        return Task.FromResult(new AppSyncAuthorizerResult
+        {
+            IsAuthorized = isAuthorized,
+            ResolverContext = new Dictionary<string, string>
+            {
+                { "userId", "user123" },
+                { "role", authorizationToken == "admin-token" ? "admin" : "user" },
+                { "apiId", apiId },
+                { "accountId", accountId }
+            },
+            TtlOverride = 300 // 5 minutes cache
+        });
     }
 }
