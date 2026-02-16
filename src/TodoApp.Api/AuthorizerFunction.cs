@@ -25,7 +25,8 @@ public class AuthorizerFunction
             return Task.FromResult(new AppSyncAuthorizerResult { IsAuthorized = false });
         }
         
-        // Simple validation
+        // CUSTOM LOGIC REQUIRED - Replace this simple token validation with your authentication logic
+        // Examples: JWT validation, OAuth token verification, database user validation
         var isAuthorized = authorizationToken == "valid-token" || authorizationToken == "admin-token";
         Logger.LogInformation($"Authorization result: {isAuthorized}");
         
@@ -39,6 +40,7 @@ public class AuthorizerFunction
                 { "apiId", apiId },
                 { "accountId", accountId }
             },
+            // CUSTOM LOGIC OPTIONAL - Adjust TTL based on your security requirements
             TtlOverride = 300 // 5 minutes cache
         });
     }
